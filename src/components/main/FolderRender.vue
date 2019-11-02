@@ -99,7 +99,10 @@ export default {
     computed: {
 
         emptyFolder: function() {
-            return this.content == null || this.content.length <= 0; 
+            return  (this.content == null       || 
+                    this.content.length < 1)    &&  
+                    (this.subfolders == null    ||
+                    this.subfolders.length < 1)  
         },
 
         files: function() {

@@ -1,12 +1,12 @@
 <template>
     <div class="bottom-sheet modal" id="editr">
-        <div class="modal-content">
+        <div v-if="buffer != null" class="modal-content">
             <p class="modal-header">Gestisci la tua richiesta</p>
             <div v-if="!buffer">
                 <p class="grey-text text-darken-1"> Nessuna richiesta è stata selezionata</p>
             </div>
             <div v-else class="row">
-                <form @submit.prevent="routeRequest()">
+                <form @submit.prevent="edit()">
                     
                     <div class="col s12 divider"></div>
 
@@ -24,7 +24,7 @@
                         </small>
                     </div>
 
-                    <div v-if="buffer.type == 'folder'" class="col s12 m6">
+                    <div class="col s12 m6">
                         Permessi richiesti: 
                         <div class="input-field">
                             <div class="switch">
@@ -46,20 +46,8 @@
                         </div>
                     </div>
 
-                    <div class="col s12" :class="buffer.type == 'folder' ? 'm6' : ''">
-                        <div class="input-field">
-                            <p class="range-field">
-                                <input type="range"  id="rslider"
-                                  v-model="buffer.lifespan"
-                                  :min="7" :max="365"/>
-                                <label for="folder-lifespan-slider" style="font-size:15px">
-                                  Durata del permesso {{buffer.lifespan}}
-                                </label>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="col s12">
+                    <div class="col s12 m6 right-align">
+                        <!-- edit button -->
                         <button type="submit" class="waves-effect waves-light btn-small">
                             <i class="material-icons left">publish</i> Richiedi modifica
                         </button>
@@ -67,18 +55,18 @@
 
                 </form>
 
-                <!-- delete request -->
-                <div>
-                    <button class="waves-effect red waves-light btn-small" 
-                        style="margin-top:10px; margin-left: 10px;"
-                        @click="showDeleteConfirm = true">
-                        <i class="material-icons left">delete</i> Elimina richiesta
-                    </button>
-                    <div v-if="showDeleteConfirm" style="margin: 10px" class="grey-text text-darken-2">
-                        Ne sei sicuro?
-                        <a style="cursor: pointer" @click="deleteRequest()" class="red-text">Si </a>, 
-                        <a style="cursor: pointer" @click="showDeleteConfirm = false"> No</a>
-                    </div>                    
+                <div class="right-align">
+                        <!-- delete button -->
+                        <button class="waves-effect red waves-light btn-small" 
+                            style="margin-top:10px; margin-right: 10px;"
+                            @click="showDeleteConfirm = true">
+                            <i class="material-icons left">delete</i> Elimina richiesta
+                        </button>
+                        <div v-if="showDeleteConfirm" style="margin: 10px" class="grey-text text-darken-2">
+                            Ne sei sicuro?
+                            <a style="cursor: pointer" @click="routeRequest('delete')" class="red-text">Si </a>, 
+                            <a style="cursor: pointer" @click="showDeleteConfirm = false"> No</a>
+                        </div> 
                 </div>
 
             </div>
@@ -92,31 +80,27 @@ export default {
     props: ["request"], 
     data: function() {
         return {
-            buffer: {
-                id: null, 
-                type: null, 
-                lifespan: null, 
-                notes: null, 
-                permissions: null, 
-            }, 
+            buffer: null, 
             showDeleteConfirm: false, 
+            loading: {
+                editBtn: false, 
+                cancBtn: false, 
+            }
         }
     },
     methods: {
 
         fillBuffer: function() {
-            this.buffer.id = this.request.id; 
-            this.buffer.type = this.request.type; 
-            this.buffer.lifespan = this.request.lifespan;
-            this.buffer.notes = this.request.notes;
-            if (this.request.type == "folder") {
-                this.buffer.permissions = this.request.permissions;
-            }    
+            this.buffer = {
+                id :            this.request.id, 
+                notes:          this.request.notes, 
+                permissions:    JSON.parse(this.request.permissions)
+            }
         }, 
 
-        routeRequest: function() {}, 
+        edit: function() {}, 
 
-        deleteRequest: function() {}, 
+        delete: function() {}
 
     }, 
     watch: {
@@ -128,9 +112,7 @@ export default {
     }, 
     mounted: function() {
         let notes = document.getElementById("rnotes")
-        let lifespan = document.getElementById("rslider")
         M.CharacterCounter.init(notes)
-        M.Range.init(lifespan);
         if (this.request) {
             this.fillBuffer()
         } 

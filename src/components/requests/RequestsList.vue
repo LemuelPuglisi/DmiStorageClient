@@ -27,28 +27,29 @@
             <table  class="striped col s12">
                 <thead>
                     <tr>
-                        <th></th>
                         <th>Target</th>
                         <th>Permessi</th>
                         <th>Durata</th>
                         <th>Note</th>
                         <th>Stato</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="request in pagination.pageContent" :key="request.id" class="hoverable animated fadeIn">
-                        <td class="left-align">
-                            <i  class="material-icons teal-text" 
-                                style="cursor: pointer" 
-                                @click="openEditModal(request)">
-                                edit
-                            </i>
-                        </td>
+                    <tr v-for="(request, index) in pagination.pageContent" :key="index" class="hoverable animated fadeIn">
                         <td>{{getInfo(request).name}}</td>
                         <td>{{request.perms}}</td>
                         <td>{{request.lifespan}}</td>
                         <td><span>{{showNotes(request.notes)}}</span></td>
                         <td><span :class="dinamicColor(request)">{{request.status}}</span></td>     
+                        <td class="left-align">
+                            <i  class="material-icons"
+                                :class="request.type == 'folder' ? 'teal-text' : 'red-text'" 
+                                style="cursor: pointer" 
+                                @click="request.type == 'folder' ? openEditModal(request) : ''">
+                                {{request.type == 'folder' ? 'edit' : 'delete'}}
+                            </i>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -63,9 +64,6 @@
             </div>
         </div>
         
-
-        <!-- <EditFolderRequest :request="requestToEdit"></EditFolderRequest> -->
-        <!-- <EditCourseRequest :request="requestToEdit"></EditCourseRequest> -->
         <EditRequest :request="requestToEdit"></EditRequest>
 
     </div>
@@ -75,8 +73,6 @@
 <script>
 import { RepoFactory }      from "@/repositories/RepoFactory"
 import errorMixin           from "@/mixins/errorMixin"
-// import EditFolderRequest    from "@/components/requests/modals/EditFolderRequest"
-// import EditCourseRequest    from "@/components/requests/modals/EditCourseRequest"
 import EditRequest    from "@/components/requests/modals/EditRequest"
 
 const CoursesRepo   = RepoFactory.get("courses")
@@ -88,8 +84,6 @@ export default {
         errorMixin
     ], 
     components: {
-        // EditFolderRequest, 
-        // EditCourseRequest, 
         EditRequest
     },
     data: function() {

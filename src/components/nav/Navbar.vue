@@ -105,7 +105,8 @@ export default {
       course.folders = null;
       CoursesRepo.getFolders(course.id)
       .then(result => { 
-        course.folders = result.data.content;
+        let x = result.data.content
+        course.folders = this.getFirstLayer(x); 
       })
       .catch(error => {
             this.handleError(error)
@@ -121,6 +122,13 @@ export default {
 
     goHome: function() {
       this.$router.push({name: "cloud"})
+    }, 
+
+    getFirstLayer: function(folders) {
+      if (folders == null) return folders
+      return folders.filter(folder => {
+        return folder.subfolder_of == null
+      })
     }
     
   },

@@ -1,5 +1,5 @@
 <template>
-  <div class="UserPanel">
+  <div class="UserPanel container">
 
     <!-- Description -->
     <div class="row">
