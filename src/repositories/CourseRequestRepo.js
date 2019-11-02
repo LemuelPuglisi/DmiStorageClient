@@ -14,6 +14,13 @@ export default {
             headers: {'Authorization': `Bearer ${token}`},
         }
         return Repository.post(resource, form, headers)
+    }, 
+
+    delete: (token, id) => {
+        let headers = {
+            headers: {'Authorization': `Bearer ${token}`},
+        }
+        return Repository.delete(resource + "/" + id, headers)
     }
 
 }
