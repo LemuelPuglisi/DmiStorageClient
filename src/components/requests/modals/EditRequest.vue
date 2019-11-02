@@ -6,7 +6,20 @@
                 <p class="grey-text text-darken-1"> Nessuna richiesta è stata selezionata</p>
             </div>
             <div v-else class="row">
-                <form @submit.prevent="edit()">
+
+                <div class="col s12">
+                    <p class="grey-text text-darken-1">
+                        Se la richiesta da modificare è in stato attivo, non verrà cancellata una volta inviata la richiesta di modifica al server. 
+                        <br>
+                        Quest'ultima verrà archiviata come pendente sino alla gestione da parte degli amministratori. 
+                        <br>
+                        Nel caso venisse accettata, essa sostituira la vecchia richiesta, che verrà, a sua volta, eliminata.
+                        <br>
+                        Nel caso di modifiche di richieste pendenti, la nuova richiesta sostituirà in qualsiasi caso quella modificata.  
+                    </p>
+                </div>
+
+                <form @submit.prevent="editRequest()">
                     
                     <div class="col s12 divider"></div>
 
@@ -48,7 +61,8 @@
 
                     <div class="col s12 m6 right-align">
                         <!-- edit button -->
-                        <button type="submit" class="waves-effect waves-light btn-small">
+                        <button type="submit" class="waves-effect waves-light btn-small"
+                        :class = "loadBtn.edit ? 'pulse' : ''" >
                             <i class="material-icons left">publish</i> Richiedi modifica
                         </button>
                     </div>
@@ -57,14 +71,15 @@
 
                 <div class="right-align">
                         <!-- delete button -->
-                        <button class="waves-effect red waves-light btn-small" 
+                        <button class="waves-effect red waves-light btn-small"
+                            :class = "loadBtn.canc ? 'pulse' : ''" 
                             style="margin-top:10px; margin-right: 10px;"
                             @click="showDeleteConfirm = true">
                             <i class="material-icons left">delete</i> Elimina richiesta
                         </button>
                         <div v-if="showDeleteConfirm" style="margin: 10px" class="grey-text text-darken-2">
                             Ne sei sicuro?
-                            <a style="cursor: pointer" @click="routeRequest('delete')" class="red-text">Si </a>, 
+                            <a style="cursor: pointer" @click="deleteRequest()" class="red-text">Si </a>, 
                             <a style="cursor: pointer" @click="showDeleteConfirm = false"> No</a>
                         </div> 
                 </div>
@@ -75,6 +90,11 @@
 </template>
 
 <script>
+import { RepoFactory }      from "@/repositories/RepoFactory"
+import errorMixin           from "@/mixins/errorMixin"
+
+const FolderRequestRepo = RepoFactory.get("folderRequests");
+
 export default {
     name: "EditRequest", 
     props: ["request"], 
@@ -82,11 +102,25 @@ export default {
         return {
             buffer: null, 
             showDeleteConfirm: false, 
-            loading: {
-                editBtn: false, 
-                cancBtn: false, 
+            loadBtn: {
+                edit: false, 
+                canc: false, 
             }
         }
+    },
+    mixins: [
+        errorMixin
+    ], 
+    computed: {
+
+        userToken: function() {
+            return this.$store.getters.getUserToken;
+        }, 
+
+        userId: function() {
+            return this.$store.getters.getUserId 
+        }
+
     },
     methods: {
 
@@ -98,9 +132,55 @@ export default {
             }
         }, 
 
-        edit: function() {}, 
+        editRequest: function() {
+            let form = {}
+            form.notes = this.buffer.notes, 
+            form.permissions = JSON.stringify(this.buffer.permissions) 
+            FolderRequestRepo.upgrade(this.userToken, this.buffer.id, form)
+            .then(() => {
+               
+                let data = { id: this.userId, token: this.userToken } 
+                this.$store.dispatch('getUserPermissions', data)
+               .catch(error => this.showError(error))
+               
+                let html = "<p class='grey-text text-darken-1'>La modifica è stata richiesta correttamente.</p>"
+                this.$swal({
+                    html: html, 
+                    type: "success", 
+                })
 
-        delete: function() {}
+                this.loadBtn.canc = false; 
+                let modal = document.getElementById('editr') 
+                M.Modal.getInstance(modal).close();
+                this.buffer = null; 
+            })  
+            .catch(error => {
+                this.loadBtn.edit = false; 
+                this.showError(error)
+            })
+        }, 
+
+        deleteRequest: function() {
+            FolderRequestRepo.delete(this.userToken, this.buffer.id)
+            .then(() => {   
+                let data = { id: this.userId, token: this.userToken } 
+                this.$store.dispatch('getUserPermissions', data)
+               .catch(error => this.showError(error))
+                let html = "<p class='grey-text text-darken-1'>La cancellazione è stata eseguita correttamente.</p>"
+                this.$swal({
+                    html: html, 
+                    type: "success", 
+                })
+                this.loadBtn.canc = false; 
+                let modal = document.getElementById('editr') 
+                M.Modal.getInstance(modal).close();
+                this.buffer = null; 
+            })
+            .catch(error => {
+                this.loadBtn.canc = false; 
+                this.showError(error)
+            });  
+        }
 
     }, 
     watch: {
