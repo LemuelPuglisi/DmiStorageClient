@@ -35,12 +35,14 @@
 
 <script>
 import RequestLabel     from "@/components/requests/subcomps/RequestLabel"
-import SelectElement    from "@/components/requests/subcomps/SelectElement"
 import { RepoFactory }  from "@/repositories/RepoFactory";
 import errorMixin       from "@/mixins/errorMixin";
 
 const CourseRequestRepo = RepoFactory.get('courseRequests'); 
 const FolderRequestRepo = RepoFactory.get('folderRequests'); 
+const CoursesRepo       = RepoFactory.get("courses");
+const FoldersRepo       = RepoFactory.get("folders");
+const UsersRepo         = RepoFactory.get("users"); 
 
 export default {
     name: "AdminPanel", 
@@ -48,7 +50,6 @@ export default {
         errorMixin
     ], 
     components: {
-        SelectElement, 
         RequestLabel
     }, 
     data: function() {
@@ -56,6 +57,9 @@ export default {
 
             courseRequests: [], 
             folderRequests: [], 
+            courses: [], 
+            folders: [], 
+            users: []
 
         }
     },
@@ -70,12 +74,17 @@ export default {
         }, 
 
         mergedRequests: function() {
+
             let requests = []
             let fRequests = this.folderRequests
             let cRequests = this.courseRequests
+            
             for (let i = 0; i < cRequests.length; i++) {
-                cRequests[i].perms = 'corso, globale'
-                cRequests[i].type  = "course"
+            
+                cRequests[i].perms      = 'corso, globale'
+                cRequests[i].type       = "course"
+                cRequests[i].user       = this.getUser(cRequests[i].user_id)
+                cRequests[i].course     = this.getCourse(cRequests[i].course_id)
                 requests.push(cRequests[i])
             }
             for (let i = 0; i < fRequests.length; i++) {
@@ -83,8 +92,12 @@ export default {
                 let perms = 'cartella'; 
                 if (json.manage) perms += ", gestione"
                 if (json.remove) perms += ", rimozione"
-                fRequests[i].perms = perms
-                fRequests[i].type  = "folder"
+                
+                fRequests[i].perms  = perms
+                fRequests[i].type   = "folder"
+                fRequests[i].user   = this.getUser  (fRequests[i].user_id)
+                fRequests[i].folder = this.getFolder(fRequests[i].folder_id)
+                fRequests[i].course = this.getCourse(fRequests[i].folder.course_id) || {} 
                 requests.push(fRequests[i])
             }
             return requests; 
@@ -95,38 +108,58 @@ export default {
 
         fetchCourseRequests: function() {
             CourseRequestRepo.get(this.userToken)
-            .then( result => {
-                this.courseRequests = result.data.content
-            })
-            .catch( error => {
-                this.showError(error); 
-            })
+            .then( result => this.courseRequests = result.data.content )
+            .catch( error => this.showError(error) )
         }, 
 
         fetchFolderRequests: function() {
             FolderRequestRepo.get(this.userToken)
-            .then( result => {
-                this.folderRequests = result.data.content
-            })
-            .catch( error => {
-                this.showError(error); 
-            })
+            .then( result => this.folderRequests = result.data.content )
+            .catch( error => this.showError(error) )
         }, 
 
         fetchUsers: function() {
-
+            UsersRepo.get(this.userToken)
+            .then( result => this.users = result.data.content )
+            .catch( error => this.showError(error) )
         }, 
 
         fetchCourses: function() {
-
+            CoursesRepo.get()
+            .then( result => this.courses = result.data )
+            .catch( error => this.showError(error) )
         }, 
 
         fetchFolders: function() {
+            FoldersRepo.get()
+            .then( result => this.folders = result.data )
+            .catch( error => this.showError(error) )
+        }, 
 
-        }
+        getCourse: function(id) {
+            return this.courses.filter(course => {
+                return course.id == id; 
+            })[0] || {}; 
+        }, 
+
+        getFolder: function(id) {
+            return this.folders.filter(folder => {
+                return folder.id == id; 
+            })[0] || {}; 
+        }, 
+
+        getUser: function(id) {
+            return this.users.filter(user => {
+                return user.id == id; 
+            })[0] || {}; 
+        }, 
+
     }, 
     created: function() {
 
+        this.fetchUsers();
+        this.fetchCourses(); 
+        this.fetchFolders(); 
         this.fetchCourseRequests(); 
         this.fetchFolderRequests(); 
 
