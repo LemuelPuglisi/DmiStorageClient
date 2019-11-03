@@ -60,7 +60,7 @@
 
 <script>
 import { RepoFactory }  from "@/repositories/RepoFactory";
-import SelectElement    from "@/components/requests/SelectElement";
+import SelectElement    from "@/components/requests/subcomps/SelectElement";
 import errorMixin       from "@/mixins/errorMixin";
 
 const CourseRequestRepo = RepoFactory.get("courseRequests");

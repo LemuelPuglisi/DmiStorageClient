@@ -4,6 +4,13 @@ const resource = "api/folders/requests"
 
 export default {
 
+    get: (token) => {
+        let headers = {
+            headers: {'Authorization': `Bearer ${token}`},
+        }
+        return Repository.get(resource, headers)
+    }, 
+
     store: (token, data) => {
         let form = {
             folder_id: data.folderId, 
