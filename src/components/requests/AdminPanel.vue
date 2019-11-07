@@ -14,9 +14,72 @@
 
         <div class="row">
             <div class="col s12">
-                <div class="card-panel">
-                    <h5>Applica filtri</h5>
-                </div>
+                <ul class="collapsible" id="mr-collapsible">
+                    <li>
+                        <div class="collapsible-header"><i class="material-icons">filter_list</i>Filtra le richieste</div>
+                        <div class="collapsible-body">
+
+                            <div class="row">
+                                
+                                <form class="col s12 m10 offset-m1">
+                                    <div class="row">
+                                        <div class="input-field col s12">
+                                        <textarea id="icon_prefix2" :model="filterSet.username" class="materialize-textarea"></textarea>
+                                        <label for="icon_prefix2">Cerca per username</label>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div class="col s4 center-align grey-text text-darken-1">
+                                    <p><b class="black-text">STATO</b></p><hr>
+                                    <p @click="filterSet.status=''"        :class="blur('', 'status')">Tutte</p>
+                                    <p @click="filterSet.status='active'"  :class="blur('active', 'status')">Attive</p>
+                                    <p @click="filterSet.status='pending'" :class="blur('pending', 'status')">Pendenti</p>
+                                    <p @click="filterSet.status='refused'" :class="blur('refused', 'status')">Rifiutate</p>
+                                    <p @click="filterSet.status='expired'" :class="blur('expired', 'status')">Scadute</p>
+                                </div>
+                                
+                                <div class="col s4 center-align grey-text text-darken-1">
+                                    <p><b class="black-text">TIPO</b></p><hr>
+                                    <p>Tutte</p>
+                                    <p>Solo cartelle</p>
+                                    <p>Solo corsi</p>
+                                </div>
+
+                                <div class="col s4 center-align grey-text text-darken-1">
+                                    <p><b class="black-text">ORDINA PER</b></p><hr>
+                                    <p>Utente</p>
+                                    <p>Corso</p>
+                                    <p>Data</p>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- legend -->
+        <div class="row composed">
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon green-text">brightness_1</i><br>     Attive</p>
+            </div>
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon yellow-text">brightness_1</i><br>    Pendenti</p>
+            </div>
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon red-text">brightness_1</i><br>       Rifiutate</p>
+            </div>
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon purple-text">brightness_1</i><br>    Scadute</p>
+            </div>
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon grey-text">school</i><br>           Corso</p>
+            </div>
+            <div class="col s6 m2 center-align">
+                <p><i class="material-icons fixed-icon grey-text">folder</i><br>           Cartella</p>
             </div>
         </div>
 
@@ -59,8 +122,14 @@ export default {
             folderRequests: [], 
             courses: [], 
             folders: [], 
-            users: []
+            users: [], 
 
+            filterSet: {
+                status:     "", 
+                type:       "", 
+                orderBy:    "",
+                username:   "", 
+            }, 
         }
     },
     computed: {
@@ -100,7 +169,7 @@ export default {
                 fRequests[i].course = this.getCourse(fRequests[i].folder.course_id) || {} 
                 requests.push(fRequests[i])
             }
-            return requests; 
+            return this.applyFilters(requests); 
         }, 
 
     }, 
@@ -154,6 +223,28 @@ export default {
             })[0] || {}; 
         }, 
 
+        materializeInit: function() {
+            let collaps = document.getElementById('mr-collapsible'); 
+            M.Collapsible.init(collaps);
+        }, 
+
+        applyFilters: function(requests) {
+            return requests.filter(request => {
+                let status    = this.filterSet.status; 
+                let type      = this.filterSet.type;    
+                return  (status != '' && requests.status == status) || 
+                        (type   != '' && request.type    == type)   ||
+                        (status == '' && type == ''); 
+            })
+        }, 
+
+        blur: function(selected, filter) {
+            if ((filter == 'status' && this.filterSet.status == selected) ||
+                (filter == 'type'   && this.filterSet.type   == selected))
+                return "blurred"; 
+            return false; 
+        }
+
     }, 
     created: function() {
 
@@ -164,9 +255,39 @@ export default {
         this.fetchFolderRequests(); 
 
     },
+    mounted: function() {
+
+        this.materializeInit(); 
+
+    }
 }
 </script>
 
 <style scoped>
+
+    .subtitle {
+        font-size: 20px; 
+    }
+
+    .fixed-icon {
+        display: inline-flex;
+        vertical-align: top;
+        margin-right: 5px; 
+    }
+
+    .composed {
+        margin-left: 12px; 
+        margin-right: 12px; 
+    }
+    
+    .blurred {
+        font-weight: bold; 
+        color: #000; 
+    }
+
+    hr {
+        width: 80%; 
+        color: white; 
+    }
 
 </style>

@@ -2,10 +2,15 @@
 
     <li class="collection-item avatar">
 
-        <img :src="request.type == 'folder' ? fpath : cpath" alt="" class="circle">
-        <span :class="badge" class="title">{{request.status}}</span>
-        <span class="statusBadge title teal">{{request.type}}</span>
+        <!-- status and type -->
+        <i class="material-icons circle" :class="statusColor[request.status]">
+            {{ request.type == "folder" ? 'folder' : 'school' }}
+        </i>
+
+        <!-- username -->
         <span class="title"> <b>{{request.user.name}}</b> </span>
+        
+        <!-- target -->
         <p>
             {{request.course.name}} 
             {{request.type == "folder" ? " | " +request.folder.display_name : "" }}
@@ -16,6 +21,8 @@
             {{request.permissions.remove ? 'rimozione' : ''}}
         </p>
         <p v-else><b>Permessi</b>: globali</p>
+        
+        <!-- edit -->
         <a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light">
             <i class="material-icons right">tune</i>
         </a>
