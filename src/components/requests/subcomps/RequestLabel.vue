@@ -21,7 +21,7 @@
             {{request.permissions.remove ? 'rimozione' : ''}}
         </p>
         <p v-else><b>Permessi</b>: globali</p>
-        
+        <p><small class="grey-text">{{request.requested_at}}</small></p>
         <!-- edit -->
         <a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light">
             <i class="material-icons right">tune</i>

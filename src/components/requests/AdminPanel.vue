@@ -24,7 +24,7 @@
                                 <form class="col s12 m10 offset-m1">
                                     <div class="row">
                                         <div class="input-field col s12">
-                                        <textarea id="icon_prefix2" :model="filterSet.username" class="materialize-textarea"></textarea>
+                                        <textarea id="icon_prefix2" v-model="filterSet.username" class="materialize-textarea"></textarea>
                                         <label for="icon_prefix2">Cerca per username</label>
                                         </div>
                                     </div>
@@ -32,25 +32,26 @@
 
                                 <div class="col s4 center-align grey-text text-darken-1">
                                     <p><b class="black-text">STATO</b></p><hr>
-                                    <p @click="filterSet.status=''"        :class="blur('', 'status')">Tutte</p>
-                                    <p @click="filterSet.status='active'"  :class="blur('active', 'status')">Attive</p>
-                                    <p @click="filterSet.status='pending'" :class="blur('pending', 'status')">Pendenti</p>
-                                    <p @click="filterSet.status='refused'" :class="blur('refused', 'status')">Rifiutate</p>
-                                    <p @click="filterSet.status='expired'" :class="blur('expired', 'status')">Scadute</p>
+                                    <p class="clickable" @click="filterSet.status=''"        :class="blur('', 'status')">Tutte</p>
+                                    <p class="clickable" @click="filterSet.status='active'"  :class="blur('active', 'status')">Attive</p>
+                                    <p class="clickable" @click="filterSet.status='pending'" :class="blur('pending', 'status')">Pendenti</p>
+                                    <p class="clickable" @click="filterSet.status='refused'" :class="blur('refused', 'status')">Rifiutate</p>
+                                    <p class="clickable" @click="filterSet.status='expired'" :class="blur('expired', 'status')">Scadute</p>
                                 </div>
                                 
                                 <div class="col s4 center-align grey-text text-darken-1">
                                     <p><b class="black-text">TIPO</b></p><hr>
-                                    <p>Tutte</p>
-                                    <p>Solo cartelle</p>
-                                    <p>Solo corsi</p>
+                                    <p class="clickable" @click="filterSet.type=''"       :class="blur('', 'type')">Tutte</p>
+                                    <p class="clickable" @click="filterSet.type='folder'" :class="blur('folder', 'type')">Solo cartelle</p>
+                                    <p class="clickable" @click="filterSet.type='course'" :class="blur('course', 'type')">Solo corsi</p>
                                 </div>
 
                                 <div class="col s4 center-align grey-text text-darken-1">
                                     <p><b class="black-text">ORDINA PER</b></p><hr>
-                                    <p>Utente</p>
-                                    <p>Corso</p>
-                                    <p>Data</p>
+                                    <p class="clickable" @click="filterSet.orderBy='id'"            :class="blur('id', 'order')">Id</p>
+                                    <p class="clickable" @click="filterSet.orderBy='user.name'"     :class="blur('user.name', 'order')">Utente</p>
+                                    <p class="clickable" @click="filterSet.orderBy='course.name'"   :class="blur('course.name', 'order')">Corso</p>
+                                    <p class="clickable" @click="filterSet.orderBy='requested_at'"  :class="blur('requested_at', 'order')">Data</p>
                                 </div>
 
                             </div>
@@ -127,7 +128,7 @@ export default {
             filterSet: {
                 status:     "", 
                 type:       "", 
-                orderBy:    "",
+                orderBy:    "id",
                 username:   "", 
             }, 
         }
@@ -228,19 +229,55 @@ export default {
             M.Collapsible.init(collaps);
         }, 
 
+        dynamicSort: function(property) {
+            let sortOrder = 1;
+            if(property[0] === "-") {
+                sortOrder = -1;
+                property = property.substr(1);
+            }
+            let bp = property.indexOf('.');
+            if (bp !== -1) {
+                let mainp    = property.substr(0, bp); 
+                let innerp   = property.substr(bp + 1);
+                return function(a, b) {
+                    let result = (a[mainp][innerp] < b[mainp][innerp]) ?
+                        -1 : (a[mainp][innerp] > b[mainp][innerp]) ? 
+                            1 : 0;
+                    return result * sortOrder;
+                }
+            }
+            return function (a,b) {
+                let result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+                return result * sortOrder;
+            }
+        }, 
+
         applyFilters: function(requests) {
-            return requests.filter(request => {
-                let status    = this.filterSet.status; 
-                let type      = this.filterSet.type;    
-                return  (status != '' && requests.status == status) || 
-                        (type   != '' && request.type    == type)   ||
-                        (status == '' && type == ''); 
+            let user      = this.filterSet.username; 
+            let status    = this.filterSet.status; 
+            let type      = this.filterSet.type;    
+            let order     = this.filterSet.orderBy; 
+
+            let tmp = requests.filter(request => {
+                return status == '' || request.status == status
             })
+
+            tmp = tmp.filter(request => {
+                return type == ''   || request.type == type
+            })
+
+            tmp = tmp.filter(request => {
+                if (user == '') return true; 
+                return  request.user.name.toLowerCase().includes(user); 
+            })
+
+            return tmp.sort(this.dynamicSort(order));
         }, 
 
         blur: function(selected, filter) {
-            if ((filter == 'status' && this.filterSet.status == selected) ||
-                (filter == 'type'   && this.filterSet.type   == selected))
+            if ((filter == 'status'     && this.filterSet.status    == selected) ||
+                (filter == 'type'       && this.filterSet.type      == selected) ||
+                (filter == 'order'      && this.filterSet.orderBy   == selected))
                 return "blurred"; 
             return false; 
         }
@@ -288,6 +325,10 @@ export default {
     hr {
         width: 80%; 
         color: white; 
+    }
+
+    .clickable {
+        cursor: pointer;
     }
 
 </style>
