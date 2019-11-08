@@ -88,8 +88,17 @@
             <div class="col s12">
                 <ul class="collection with-header z-depth-1">
                     <li class="collection-header"><h5>Gestisci le richieste</h5></li>
-                    <RequestLabel v-for="(request, i) in mergedRequests" :key="i" :request="request"></RequestLabel>
+                    <RequestLabel v-for="(request, i) in pagination.pageContent" :key="i" :request="request"></RequestLabel>
                     <p v-if="mergedRequests.length < 1" class="center-align grey-text">Nessuna richiesta da gestire</p>             
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12">
+                <ul v-if="mergedRequests.length > 0" class="pagination center-align" style="margin-bottom:0px;">
+                    <li :class="isPrevDisabled" @click="prevPage()"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+                    <li :class="isNextDisabled" @click="nextPage()"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
                 </ul>
             </div>
         </div>
@@ -124,7 +133,11 @@ export default {
             courses: [], 
             folders: [], 
             users: [], 
-
+            pagination: {
+                page: 1, 
+                perPage: 6, 
+                pageContent: []
+            }, 
             filterSet: {
                 status:     "", 
                 type:       "", 
@@ -172,6 +185,18 @@ export default {
             }
             return this.applyFilters(requests); 
         }, 
+
+        pages: function() {
+            return Math.ceil(this.mergedRequests.length / this.pagination.perPage); 
+        }, 
+
+        isPrevDisabled: function() {
+            return this.pagination.page <= 1 ? 'disabled waves-effect' : 'waves-effect' 
+        }, 
+
+        isNextDisabled: function() {
+            return this.pagination.page >= this.pages ? 'disabled waves-effect' : 'waves-effect'
+        },
 
     }, 
     methods: {
@@ -280,6 +305,36 @@ export default {
                 (filter == 'order'      && this.filterSet.orderBy   == selected))
                 return "blurred"; 
             return false; 
+        }, 
+
+        getCurrentPageContent: function() {
+            this.pagination.pageContent = []
+            let start = (this.pagination.page - 1) * this.pagination.perPage
+            let end = (this.pagination.page * this.pagination.perPage)
+            for (let i = start; i < end && i < this.mergedRequests.length; i++) {
+                this.pagination.pageContent.push(this.mergedRequests[i])
+            }
+        }, 
+
+        prevPage: function() {
+            if (this.pagination.page > 1) {
+                this.pagination.page --
+                this.getCurrentPageContent()
+            }
+        }, 
+
+        nextPage: function() {
+            if (this.pagination.page < this.pages) {
+                this.pagination.page ++
+                this.getCurrentPageContent()
+            } 
+        }
+        
+    }, 
+    watch: {
+
+        mergedRequests: function() {
+            this.getCurrentPageContent()
         }
 
     }, 
@@ -295,7 +350,8 @@ export default {
     mounted: function() {
 
         this.materializeInit(); 
-
+        this.getCurrentPageContent()
+        
     }
 }
 </script>
