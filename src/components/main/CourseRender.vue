@@ -24,15 +24,9 @@
 
             <div v-if="emptyCourse && course != null">
                 <div class="row">
-                    <div class="offset-s1 col s10 ">
-                        <div class="card">
-                            <div class="card-image">
-                                <img src="@/assets/media/no-content.gif" class="responsive-img" alt="">
-                            </div>
-                            <div class="card-content center align">
-                                <p class="error-message"><i class="material-icons fixed-icon red-text">mood_bad</i> Il corso <b>{{course.name}}</b> sembra essere <span class="red-text">vuoto</span>! </p>
-                            </div>
-                        </div>
+                    <div class="offset-m3 col s12 m6 center-align">
+                        <img src="@/assets/media/no-content.png" class="responsive-img" alt="">                        
+                        <p class="error-message"><i class="material-icons fixed-icon red-text">mood_bad</i> Il corso <b>{{course.name}}</b> sembra essere <span class="red-text">vuoto</span>! </p>
                     </div>
                 </div>
             </div>

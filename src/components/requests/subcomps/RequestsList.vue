@@ -273,15 +273,25 @@ export default {
 
     }, 
     created: function() {
+        
+        this.$store.dispatch('getUserPermissions', { 
+            id: this.userId, 
+            token: this.userToken 
+        })
+        .catch(error => this.showError(error))  
+
         this.fetchAllCoursesInfo()
         this.fetchAllFoldersInfo()
+
     }, 
     mounted: function() {
+        
         this.getCurrentPageContent()
         let modals = document.querySelectorAll('.modal');
         M.Modal.init(modals);
         let sselect = document.getElementById("status-select"); 
         M.FormSelect.init(sselect); 
+
     }
 }
 </script>

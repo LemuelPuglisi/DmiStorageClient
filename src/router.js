@@ -3,6 +3,7 @@ import Router         from 'vue-router'
 import store          from './store' 
 import Home           from './views/Home.vue'
 import Reset          from './views/Reset.vue'
+import PageNotFound   from './views/PageNotFound.vue'
 import CloudRender    from './components/main/CloudRender'
 import CourseRender   from './components/main/CourseRender'
 import FolderRender   from './components/main/FolderRender'
@@ -53,14 +54,19 @@ export default new Router({
               next({name: 'cloud'})
             }
           }
-        }
-
-      ]
+        }, 
+      ], 
     },
     {
       path: '/reset',
       name: 'reset',
       component: Reset
     },
+    { 
+      path: "*", 
+      name: "not-found", 
+      component: PageNotFound 
+    }
+
   ]
 })
