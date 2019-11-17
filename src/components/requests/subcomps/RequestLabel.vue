@@ -62,8 +62,14 @@ export default {
                 name: 'manage-request', 
                 params: {
                     id:     this.request.id, 
-                    type:   this.request.type
-                }
+                    type:   this.request.type,
+                }, 
+                // query: {
+                //     user:   '', 
+                //     email:  '', 
+                //     course: '', 
+                //     folder: '', 
+                // }
             })
         }
 

@@ -57,7 +57,7 @@ export default new Router({
           }
         }, 
         {
-          path: 'manage/:id', 
+          path: 'manage/:id/:type', 
           name: 'manage-request', 
           component: RequestManager,
           props: true,
