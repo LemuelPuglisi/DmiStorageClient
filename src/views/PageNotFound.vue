@@ -46,7 +46,10 @@ export default {
   methods: {
 
     goHome: function() {
-      this.$router.push({'name' : "cloud"})
+
+      // init again all materialize comps.  
+      window.location.href="/"; 
+    
     }
 
   }

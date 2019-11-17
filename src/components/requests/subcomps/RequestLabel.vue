@@ -22,10 +22,12 @@
         </p>
         <p v-else><b>Permessi</b>: globali</p>
         <p><small class="grey-text">{{request.requested_at}}</small></p>
+        
         <!-- edit -->
-        <a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light">
+        <a @click="manage()" class="secondary-content btn-floating btn-small waves-effect waves-light">
             <i class="material-icons right">tune</i>
         </a>
+
     </li>
 
 </template>
@@ -38,8 +40,6 @@ export default {
     ], 
     data: function() {
         return {
-            cpath: require("@/assets/media/course-icon.png"), 
-            fpath: require("@/assets/media/folder-icon.png"), 
             statusColor: {
                 active:  'green', 
                 pending: 'orange', 
@@ -56,6 +56,16 @@ export default {
 
     }, 
     methods: {
+
+        manage: function() {
+            this.$router.push({
+                name: 'manage-request', 
+                params: {
+                    id:     this.request.id, 
+                    type:   this.request.type
+                }
+            })
+        }
 
     }
 }

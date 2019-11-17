@@ -49,6 +49,11 @@ export default new Vuex.Store({
 
     isLoggedIn: state => {
       return state.user.state == 'logged'; 
+    },
+    
+    isAdmin: state => {
+      return  state.user.state == 'logged' && 
+              state.user.data.role != 1; 
     }, 
 
     getUserData: state => {
@@ -184,8 +189,7 @@ export default new Vuex.Store({
         const headers = {'Authorization': `Bearer ${data.token}`} 
         const courseUrl = 'api/user/' + data.id + '/courses/requests' 
         const folderUrl = 'api/user/' + data.id + '/folders/requests' 
-        let secret = process.env.VUE_APP_AES_SECRET 
-
+        
         axios({ url: courseUrl, headers: headers })
         .then(result => context.commit('addCourseRequests', result.data.content))
         .catch(error => reject(error))

@@ -9,6 +9,7 @@ import CourseRender   from './components/main/CourseRender'
 import FolderRender   from './components/main/FolderRender'
 import ResourceRender from './components/main/ResourceRender'
 import RequestRender  from './components/requests/RequestRender'
+import RequestManager from './components/requests/RequestManager'
 
 Vue.use(Router)
 
@@ -51,10 +52,23 @@ export default new Router({
             if (store.getters.isLoggedIn) {
               next()
             } else {
-              next({name: 'cloud'})
+              next({name: 'not-found'})
             }
           }
         }, 
+        {
+          path: 'manage/:id', 
+          name: 'manage-request', 
+          component: RequestManager,
+          props: true,
+          beforeEnter: function(to, from, next) {
+            if (store.getters.isAdmin) {
+              next()
+            } else {
+              next({name: 'not-found'})
+            }
+          }
+        }
       ], 
     },
     {

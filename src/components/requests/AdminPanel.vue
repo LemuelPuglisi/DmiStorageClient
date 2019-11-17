@@ -128,6 +128,7 @@ export default {
     data: function() {
         return {
 
+            requestToManage: null, 
             courseRequests: [], 
             folderRequests: [], 
             courses: [], 
