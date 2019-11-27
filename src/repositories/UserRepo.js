@@ -11,6 +11,12 @@ export default {
         })
     }, 
 
+    show: (token, id) => {
+        return Repository.get(_resource + "/" + id, {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+    }, 
+
     getCoursesRequests: (id, token) => {
         return Repository.get(resource + "/" + id + "/courses/requests", {
             headers: {'Authorization': `Bearer ${token}`}

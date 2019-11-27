@@ -25,7 +25,7 @@
         <div class="row">
 
           <div class="col s12">
-            <div class="card-panel ch grey lighten-5 z-depth-2">
+            <div class="card-panel grey lighten-5 z-depth-2">
               
               <table class="responsive-table highlight centered">
                 <thead>
@@ -45,8 +45,8 @@
                     <td>{{request.status}}</td>
                     <td>{{wfPermissions}}</td>
                     <td>{{request.lifespan}} gg</td>
-                    <td></td>
-                    <td v-if="request.type=='folder'"></td>
+                    <td>{{course.name}}</td>
+                    <td v-if="type=='folder'">{{folder.display_name}}</td>
                   </tr>
                 </tbody>
                 
@@ -55,20 +55,48 @@
           </div>
 
           <div class="col s12 m6">
-            <div class="card-panel ch grey lighten-5 z-depth-2">
+            <div class="card-panel chf grey lighten-5 z-depth-2">
               <h6>Estremi dell'utente</h6>
-                  
+                <ul class="collection">
+                  <li class="collection-item"><b>id:</b>          {{user.id}}</li>
+                  <li class="collection-item"><b>nome:</b>        {{user.name}}</li>
+                  <li class="collection-item"><b>email:</b>       {{user.email}}</li>
+                  <li class="collection-item"><b>creato il</b>    {{user.created_at}}</li>
+                </ul>
             </div>
           </div>
 
           <div class="col s12 m6">
-            <div class="card-panel ch grey lighten-5 z-depth-2">
+            <div class="card-panel chf grey lighten-5 z-depth-2">
               <h6>Note della richiesta</h6>
               <p class="grey-text text-darken-2">{{request.notes}}</p>
             </div>
           </div>
 
         </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="card-panel grey lighten-5 z-depth-2">
+              <div class="card-content action-bar">
+
+                <!-- This as to manage request and change if request
+                     is already accepted, in that case it has to allow
+                     admins to invalidate the permission. -->
+
+                <a class="waves-effect waves-light btn-small green" style="margin-right:10px">
+                  <i class="material-icons left">check</i>Accetta
+                </a>
+
+                <a class="waves-effect waves-light btn-small red" style="margin-right:10px">
+                  <i class="material-icons left">close</i>Rifiuta
+                </a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -81,6 +109,9 @@ import errorMixin       from "@/mixins/errorMixin"
 
 const FolderRequestRepo = RepoFactory.get("folderRequests"); 
 const CourseRequestRepo = RepoFactory.get("courseRequests");
+const CourseRepo        = RepoFactory.get("courses"); 
+const FolderRepo        = RepoFactory.get("folders"); 
+const UserRepo          = RepoFactory.get("users"); 
 
 export default {
     name: "RequestManager", 
@@ -91,8 +122,9 @@ export default {
           name:   '', 
           email:  '', 
         }, 
-        course: '', 
-        folder: '', 
+        course: {}, 
+        folder: {}, 
+        user:   {}
 
       }
     }, 
@@ -134,27 +166,51 @@ export default {
 
       fetchFolderRequest: function() {
         FolderRequestRepo.show(this.userToken, this.id)
-        .then(result =>{this.request = result.data.content})
+        .then(result => {
+          this.request = result.data.content
+          this.fetchFolderDetails(this.request.folder_id); 
+          this.fetchUserDetails(); 
+        })
         .catch(error => this.showError(error))
       }, 
 
       fetchCourseRequest: function() {
         CourseRequestRepo.show(this.userToken, this.id)
-        .then(result =>{this.request = result.data.content})
+        .then(result => {
+          this.request = result.data.content
+          this.fetchCourseDetails(this.request.course_id); 
+          this.fetchUserDetails();
+        })
+        .catch(error => this.showError(error))
+      },
+
+      fetchCourseDetails: function(id) {
+        CourseRepo.show(id)
+        .then(result => this.course = result.data)
+        .catch(error => this.showError(error))
+      }, 
+
+      fetchFolderDetails: function(id) {
+        FolderRepo.show(id)
+        .then(result => {
+          this.folder = result.data.content
+          this.fetchCourseDetails(this.folder.course_id); 
+        })
+      }, 
+
+      fetchUserDetails: function() {
+        UserRepo.show(this.userToken, this.request.user_id)
+        .then(result => this.user = result.data.content)
         .catch(error => this.showError(error))
       }
 
     }, 
     created: function() {
 
-      // this.user.name  = this.$route.query.user; 
-      // this.user.email = this.$route.query.email; 
-      // this.course     = this.$route.query.course; 
-      // this.folder     = this.$route.query.folder; 
-
-      if (this.type == 'folder') this.fetchFolderRequest(); 
-      else this.fetchCourseRequest(); 
-
+      if (this.type == 'folder') 
+        this.fetchFolderRequest(); 
+      else 
+        this.fetchCourseRequest(); 
     }, 
     watch: {
 
@@ -176,6 +232,7 @@ export default {
   }
 
   .title {
+    margin-left: 10px; 
     font-size: 25px; 
     font-weight: bold; 
   }
@@ -190,8 +247,13 @@ export default {
     padding-bottom: 0px;  
   }
 
-  .ch {
-    height: 180px;
+  .chf {
+    height: 250px; 
+  }
+
+  .action-bar {
+    padding-top: 10px; 
+    padding-bottom: 10px; 
   }
 
 </style>
