@@ -7,8 +7,8 @@
       <div class="row">
         <div class="col s12 m8 offset-m2" style="margin-top:40px">
           <div class="card">
-            <div class="card-image">
-              <img src="@/assets/media/404bg.gif">
+            <div class="center-align">
+              <img class="responsive" src="@/assets/media/no-content.png" style="max-width: 400px;">
             </div>
             <div class="card-content center-align">
               <h5>404 | Pagina non trovata</h5>
@@ -59,7 +59,7 @@ export default {
 <style scoped>
 
   body {
-    background-color: #F1F1F1;
+    background-color: #F1F1F1;    
   }
 
   .fixed-icon {

@@ -1,15 +1,16 @@
-import Vue            from 'vue'
-import Router         from 'vue-router'
-import store          from './store' 
-import Home           from './views/Home.vue'
-import Reset          from './views/Reset.vue'
-import PageNotFound   from './views/PageNotFound.vue'
-import CloudRender    from './components/main/CloudRender'
-import CourseRender   from './components/main/CourseRender'
-import FolderRender   from './components/main/FolderRender'
-import ResourceRender from './components/main/ResourceRender'
-import RequestRender  from './components/requests/RequestRender'
-import RequestManager from './components/requests/RequestManager'
+import Vue              from 'vue'
+import Router           from 'vue-router'
+import store            from './store' 
+import Home             from './views/Home.vue'
+import Reset            from './views/Reset.vue'
+import PageNotFound     from './views/PageNotFound.vue'
+import CloudRender      from './components/main/CloudRender'
+import CourseRender     from './components/main/CourseRender'
+import FolderRender     from './components/main/FolderRender'
+import ResourceRender   from './components/main/ResourceRender'
+import RequestRender    from './components/requests/RequestRender'
+import RequestManager   from './components/requests/RequestManager'
+import ResourceManager  from './components/resources/ResourceManager'
 
 Vue.use(Router)
 
@@ -63,6 +64,18 @@ export default new Router({
           props: true,
           beforeEnter: function(to, from, next) {
             if (store.getters.isAdmin) {
+              next()
+            } else {
+              next({name: 'not-found'})
+            }
+          }
+        }, 
+        {
+          path: 'resources', 
+          name: 'resources', 
+          component: ResourceManager, 
+          beforeEnter: function(to, from, next) {
+            if (store.getters.isLoggedIn) {
               next()
             } else {
               next({name: 'not-found'})

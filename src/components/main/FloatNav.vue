@@ -6,9 +6,9 @@
         </a>
         <ul>
             <li><a class="btn-floating green darken-1"><i class="material-icons">attach_file</i></a></li>
-            <li><a class="btn-floating green lighten-2"><i class="material-icons">format_quote</i></a></li>
-            <li><a class="btn-floating red darken-2" @click="goTo('requests')"><i class="material-icons">remove_red_eye</i></a></li>
-            <li><a class="btn-floating brown darken-2" @click="goTo('cloud')"><i class="material-icons">home</i></a></li>
+            <li><a class="btn-floating green lighten-2" @click="goTo('resources')"> <i class="material-icons">cloud_upload</i></a></li>
+            <li><a class="btn-floating red darken-2"    @click="goTo('requests')">  <i class="material-icons">remove_red_eye</i></a></li>
+            <li><a class="btn-floating brown darken-2"  @click="goTo('cloud')">     <i class="material-icons">home</i></a></li>
         </ul>
     </div>
     
