@@ -1,5 +1,5 @@
 <template>
-  <div class="UserPanel">
+  <div class="UserPanel container-fluid" style="padding: 10px">
 
     <!-- Description -->
     <div class="row">
@@ -52,12 +52,10 @@
 <script>
 import CourseRequestForm from "@/components/requests/forms/CourseRequestForm"; 
 import FolderRequestForm from "@/components/requests/forms/FolderRequestForm"; 
-import SelectElement from "@/components/requests/SelectElement";
-import RequestsList from "@/components/requests/RequestsList";
+import RequestsList from "@/components/requests/subcomps/RequestsList";
 import { RepoFactory } from "@/repositories/RepoFactory";
 import errorMixin from "@/mixins/errorMixin";
 
-const CourseRequestRepo = RepoFactory.get("courseRequests");
 const CoursesRepo = RepoFactory.get("courses");
 const FoldersRepo = RepoFactory.get("folders");
 
@@ -67,7 +65,6 @@ export default {
   components: {
     CourseRequestForm, 
     FolderRequestForm, 
-    SelectElement,
     RequestsList
   },
   computed: {

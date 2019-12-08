@@ -1,8 +1,21 @@
 import Repository from "@/repositories/Repository"
 
 const resource = "api/user"
+const _resource = "api/users"
 
 export default {
+
+    get: (token) => {
+        return Repository.get(_resource, {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+    }, 
+
+    show: (token, id) => {
+        return Repository.get(_resource + "/" + id, {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+    }, 
 
     getCoursesRequests: (id, token) => {
         return Repository.get(resource + "/" + id + "/courses/requests", {

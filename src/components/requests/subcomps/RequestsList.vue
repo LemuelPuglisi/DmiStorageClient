@@ -27,28 +27,29 @@
             <table  class="striped col s12">
                 <thead>
                     <tr>
-                        <th></th>
                         <th>Target</th>
                         <th>Permessi</th>
                         <th>Durata</th>
                         <th>Note</th>
                         <th>Stato</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="request in pagination.pageContent" :key="request.id" class="hoverable animated fadeIn">
-                        <td class="left-align">
-                            <i  class="material-icons teal-text" 
-                                style="cursor: pointer" 
-                                @click="openEditModal(request)">
-                                edit
-                            </i>
-                        </td>
+                    <tr v-for="(request, index) in pagination.pageContent" :key="index" class="hoverable animated fadeIn">
                         <td>{{getInfo(request).name}}</td>
                         <td>{{request.perms}}</td>
                         <td>{{request.lifespan}}</td>
                         <td><span>{{showNotes(request.notes)}}</span></td>
                         <td><span :class="dinamicColor(request)">{{request.status}}</span></td>     
+                        <td class="left-align">
+                            <i  class="material-icons"
+                                :class="request.type == 'folder' ? 'teal-text' : 'red-text'" 
+                                style="cursor: pointer" 
+                                @click="request.type == 'folder' ? openEditModal(request) : showDelAlert(request)">
+                                {{request.type == 'folder' ? 'edit' : 'delete'}}
+                            </i>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -63,9 +64,6 @@
             </div>
         </div>
         
-
-        <!-- <EditFolderRequest :request="requestToEdit"></EditFolderRequest> -->
-        <!-- <EditCourseRequest :request="requestToEdit"></EditCourseRequest> -->
         <EditRequest :request="requestToEdit"></EditRequest>
 
     </div>
@@ -75,12 +73,11 @@
 <script>
 import { RepoFactory }      from "@/repositories/RepoFactory"
 import errorMixin           from "@/mixins/errorMixin"
-// import EditFolderRequest    from "@/components/requests/modals/EditFolderRequest"
-// import EditCourseRequest    from "@/components/requests/modals/EditCourseRequest"
 import EditRequest    from "@/components/requests/modals/EditRequest"
 
 const CoursesRepo   = RepoFactory.get("courses")
 const FolderRepo    = RepoFactory.get("folders");
+const CourseRequestRepo = RepoFactory.get("courseRequests");
 
 export default {
     name: "RequestsList", 
@@ -88,8 +85,6 @@ export default {
         errorMixin
     ], 
     components: {
-        // EditFolderRequest, 
-        // EditCourseRequest, 
         EditRequest
     },
     data: function() {
@@ -156,6 +151,14 @@ export default {
             return this.pagination.page >= this.pages ? 'disabled waves-effect' : 'waves-effect'
         },
 
+        userToken: function() {
+            return this.$store.getters.getUserToken;
+        }, 
+
+        userId: function() {
+            return this.$store.getters.getUserId 
+        }
+
     }, 
     methods: {
         
@@ -205,14 +208,46 @@ export default {
 
         openEditModal: function(request) {
             this.requestToEdit = request; 
-            // let id = "edit-"; 
-            // if (request.type == "folder") id += "frequest"
-            // else id += "crequest" 
-            // M.Modal.getInstance(document.getElementById(id)).open();
             const id = "editr"; 
             M.Modal.getInstance(document.getElementById(id)).open();            
         }, 
+
+        showDelAlert: function(request) {
+            this.$swal({
+                titleText: "Sei sicuro?", 
+                html:   "<p class='grey-text text-darken-1'>Nel caso la richiesta fosse attiva, perderai tutti permessi legati ad essa.</p>", 
+                type: "warning", 
+                allowOutsideClick: false, 
+                showCancelButton: true, 
+                confirmButtonColor: "red", 
+                cancelButtonColor: "green", 
+                confirmButtonText: "elimina", 
+                cancelButtonText: "mantieni"
+            })
+            .then((result) => {
+                if (result.value) {
+                    this.deleteCourseRequest(request)
+                }
+            });
+        },
         
+        deleteCourseRequest: function(request) {
+            CourseRequestRepo.delete(this.userToken, request.id)
+            .then(() => {   
+                let data = { id: this.userId, token: this.userToken } 
+                this.$store.dispatch('getUserPermissions', data)
+               .catch(error => this.showError(error))
+                let html = "<p class='grey-text text-darken-1'>La cancellazione è stata eseguita correttamente.</p>"
+                this.$swal({
+                    html: html, 
+                    type: "success", 
+                })
+            })
+            .catch(error => {
+                this.showError(error)
+            });  
+        }, 
+
         prevPage: function() {
             if (this.pagination.page > 1) {
                 this.pagination.page --
@@ -238,15 +273,25 @@ export default {
 
     }, 
     created: function() {
+        
+        this.$store.dispatch('getUserPermissions', { 
+            id: this.userId, 
+            token: this.userToken 
+        })
+        .catch(error => this.showError(error))  
+
         this.fetchAllCoursesInfo()
         this.fetchAllFoldersInfo()
+
     }, 
     mounted: function() {
+        
         this.getCurrentPageContent()
         let modals = document.querySelectorAll('.modal');
         M.Modal.init(modals);
         let sselect = document.getElementById("status-select"); 
         M.FormSelect.init(sselect); 
+
     }
 }
 </script>
