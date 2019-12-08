@@ -54,6 +54,19 @@
             </div>
           </div>
 
+          <div v-if="request.status != 'pending'" class="col s12">
+            <div class="card-panel grey lighten-5 z-depth-2">
+              <div class="card-content" style="padding:5px">
+
+                <p class="grey-text text-darken-2">
+                  La richiesta è stata inoltrata il {{request.requested_at}}, scadrà il {{request.expiration_date}} ed una
+                  volta decorsa la scadenza non sarà più possibile interagire con essa. <br>
+                  L'amministratore <b>{{admin.name}}</b> è l'ultimo utente ad aver gestito la richiesta. 
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div class="col s12 m6">
             <div class="card-panel chf grey lighten-5 z-depth-2">
               <h6>Estremi dell'utente</h6>
@@ -80,17 +93,25 @@
             <div class="card-panel grey lighten-5 z-depth-2">
               <div class="card-content action-bar">
 
-                <!-- This as to manage request and change if request
-                     is already accepted, in that case it has to allow
-                     admins to invalidate the permission. -->
-
-                <a class="waves-effect waves-light btn-small green" style="margin-right:10px">
-                  <i class="material-icons left">check</i>Accetta
+                <a  v-if="showAccept" @click="manageRequest(true)" 
+                    class="waves-effect waves-light btn-small green" 
+                    :class="loading.acceptBtn ? 'pulse' : ''"
+                    style="margin-right:10px">
+                  <i class="material-icons left">check</i>
+                  {{this.request.status == "pending" ? "Accetta" : "Abilita"}}
                 </a>
 
-                <a class="waves-effect waves-light btn-small red" style="margin-right:10px">
-                  <i class="material-icons left">close</i>Rifiuta
+                <a  v-if="showRefuse" @click="manageRequest(false)" 
+                    class="waves-effect waves-light btn-small red"
+                    :class="loading.refuseBtn ? 'pulse' : ''" 
+                    style="margin-right:10px">
+                  <i class="material-icons left">close</i>
+                  {{this.request.status == "pending" ? "Rifiuta" : "Rimuovi"}}
                 </a>
+
+                <p v-if="request.status == 'expired'" class="grey-text text-darken-2" style="margin-right:10px">
+                  La richiesta è scaduta. 
+                </p>
 
               </div>
             </div>
@@ -122,10 +143,15 @@ export default {
           name:   '', 
           email:  '', 
         }, 
+        admin: {
+          name:   '', 
+        }, 
         course: {}, 
         folder: {}, 
-        user:   {}
-
+        loading: {
+          acceptBtn: false, 
+          refuseBtn: false, 
+        }
       }
     }, 
     mixins: {
@@ -153,6 +179,14 @@ export default {
         if (perms != "") perms += ", ";  
         if (json.remove) perms += "rimozione "; 
         return perms;  
+      }, 
+
+      showAccept: function() {
+        return this.request.status == "pending" || this.request.status == "refused";  
+      }, 
+
+      showRefuse: function() {
+        return this.request.status == "pending" || this.request.status == "active";   
       }
 
     },
@@ -170,6 +204,7 @@ export default {
           this.request = result.data.content
           this.fetchFolderDetails(this.request.folder_id); 
           this.fetchUserDetails(); 
+          this.fetchAdminDetails(); 
         })
         .catch(error => this.showError(error))
       }, 
@@ -180,6 +215,7 @@ export default {
           this.request = result.data.content
           this.fetchCourseDetails(this.request.course_id); 
           this.fetchUserDetails();
+          this.fetchAdminDetails();
         })
         .catch(error => this.showError(error))
       },
@@ -202,15 +238,43 @@ export default {
         UserRepo.show(this.userToken, this.request.user_id)
         .then(result => this.user = result.data.content)
         .catch(error => this.showError(error))
+      }, 
+
+      fetchAdminDetails: function() {
+        UserRepo.show(this.userToken, this.request.authorizer_id)
+        .then(result => this.admin = result.data.content)
+        .catch(error => this.showError(error))
+      },
+
+      manageRequest: function(choice) {
+
+        this.loading.acceptBtn = choice; 
+        this.loading.refuseBtn = !choice; 
+
+        if (this.type == 'folder') {
+          FolderRequestRepo.manage(this.userToken, this.request.id, choice)
+          .then(this.fetchDetails())
+          .catch(error => this.showError(error))
+        }
+        else if (this.type == 'course') {
+          CourseRequestRepo.manage(this.userToken, this.request.id, choice)
+          .then(this.fetchDetails())
+          .catch(error => this.showError(error))
+        }
+ 
+      }, 
+
+      fetchDetails: function() {
+        if (this.type == 'folder') 
+          this.fetchFolderRequest(); 
+        else this.fetchCourseRequest();
+        this.loading.acceptBtn = false; 
+        this.loading.refuseBtn = false;
       }
 
     }, 
-    created: function() {
-
-      if (this.type == 'folder') 
-        this.fetchFolderRequest(); 
-      else 
-        this.fetchCourseRequest(); 
+    created: function() { 
+      this.fetchDetails(); 
     }, 
     watch: {
 
@@ -249,6 +313,7 @@ export default {
 
   .chf {
     height: 250px; 
+    overflow: auto; 
   }
 
   .action-bar {

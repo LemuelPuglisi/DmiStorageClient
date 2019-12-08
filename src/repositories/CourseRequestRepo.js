@@ -35,6 +35,16 @@ export default {
             headers: {'Authorization': `Bearer ${token}`},
         }
         return Repository.delete(resource + "/" + id, headers)
+    }, 
+
+    manage: (token, id, choice) => {
+        let form = {
+            choice: choice
+        }
+        let headers = {
+            headers: {'Authorization': `Bearer ${token}`},
+        }
+        return Repository.put(resource + "/" + id + "/manage", form, headers)
     }
 
 }
